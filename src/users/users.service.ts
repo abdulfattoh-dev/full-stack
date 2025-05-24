@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './entities/user.entity';
+import { Country } from 'src/countries/entities/country.entity';
 
 @Injectable()
 export class UsersService {
@@ -16,12 +17,12 @@ export class UsersService {
   }
 
   async findAll() {
-    const users = await this.model.findAll();
+    const users = await this.model.findAll({ include: { model: Country } });
     return users;
   }
 
   async findOne(id: number) {
-    const user = await this.model.findByPk(id);
+    const user = await this.model.findByPk(id, { include: { model: Country } });
     return user;
   }
 
