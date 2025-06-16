@@ -5,7 +5,7 @@ import { Context } from 'telegraf';
 
 @Injectable()
 export class BotService {
-  constructor(private readonly httpService: HttpService) { }
+  constructor(private readonly httpService: HttpService) {}
 
   async onStart(ctx: Context) {
     try {
@@ -37,12 +37,11 @@ export class BotService {
         }
 
         const foot = `\n\n👉 <a href="${data.content_urls.desktop.page || data.content_urls.mobile.page}">Batafsil o'qish</a>`;
-        const extract = data.extract.slice(0, (1024 - head.length - foot.length)) + "...";
+        const extract =
+          data.extract.slice(0, 1024 - head.length - foot.length) + '...';
         const message = head + extract + foot;
 
-        if (
-          data.originalimage?.source || data.thumbnail?.source
-        ) {
+        if (data.originalimage?.source || data.thumbnail?.source) {
           ctx.replyWithPhoto(
             data.originalimage?.source || data.thumbnail?.source,
             {
