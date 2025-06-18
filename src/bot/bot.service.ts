@@ -5,11 +5,11 @@ import { Context } from 'telegraf';
 
 @Injectable()
 export class BotService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) { }
 
   async onStart(ctx: Context) {
     try {
-      ctx.reply('Wikipedia botiga xush kelibsiz');
+      await ctx.reply('Wikipedia botiga xush kelibsiz');
     } catch (error) {
       console.log(error);
     }
@@ -18,14 +18,30 @@ export class BotService {
   async onText(ctx: Context) {
     try {
       if (ctx.message && 'text' in ctx.message) {
-        const url = `https://uz.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(ctx.message.text.trim())}`;
+        let lang = "uz";
+
+        if (ctx.message.text.startsWith("en")) {
+          lang = "en";
+          ctx.message.text = ctx.message.text.replace(/^en\s*/, "");
+        } else if (ctx.message.text.startsWith("ru")) {
+          lang = "ru";
+          ctx.message.text = ctx.message.text.replace(/^ru\s*/, "");
+        } else if (ctx.message.text.startsWith("tr")) {
+          lang = "tr";
+          ctx.message.text = ctx.message.text.replace(/^tr\s*/, "");
+        } else {
+          lang = "uz";
+          ctx.message.text = ctx.message.text.replace(/^uz\s*/, "");
+        }
+
+        const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(ctx.message.text.trim())}`;
         const res = await lastValueFrom(this.httpService.get(url));
         const data = res.data;
 
         console.log(data);
 
         if (!data.extract) {
-          ctx.reply('❌ Bu mavzuga oid maqola topilmadi.');
+          await ctx.reply('❌ Bu mavzuga oid maqola topilmadi.');
         }
 
         let head = ``;
@@ -42,7 +58,7 @@ export class BotService {
         const message = head + extract + foot;
 
         if (data.originalimage?.source || data.thumbnail?.source) {
-          ctx.replyWithPhoto(
+          await ctx.replyWithPhoto(
             data.originalimage?.source || data.thumbnail?.source,
             {
               caption: message,
@@ -50,13 +66,13 @@ export class BotService {
             },
           );
         } else {
-          ctx.reply(message, { parse_mode: 'HTML' });
+          await ctx.reply(message, { parse_mode: 'HTML' });
         }
       } else {
-        ctx.reply('❌ Bu mavzuga oid maqola topilmadi.');
+        await ctx.reply('❌ Bu mavzuga oid maqola topilmadi.');
       }
     } catch (error) {
-      ctx.reply("❌ Ma'lumot olishda xatolik yuz berdi.");
+      await ctx.reply("❌ Ma'lumot olishda xatolik yuz berdi.");
       console.error('Error:', error?.response?.data || error.message || error);
     }
   }
